@@ -1,0 +1,31 @@
+<trackData>
+    <init>
+        <template>sample$Number$.x</template>
+        <sampleCount>2</sampleCount>
+        <initialWebpage>
+           <html>
+              <head>
+              </head>
+              <body>
+                <textarea id="textArea">
+                    Initial webpage loaded
+                </textarea>
+              </body>
+            </html>
+        </initialWebpage>
+    </init>
+    <sample1.x decodeDur="5" sampleType="0">
+        <sampleData>
+            <script>
+                document.getElementById("textArea").innerHTML="sample1 loaded";
+            </script>
+        </sampleData>
+    </sample1.x>
+    <sample2.x decodeDur="5" sampleType="0">
+        <sampleData>
+            <script>
+                document.getElementById("textArea").innerHTML="sample2 loaded";
+            </script>
+        </sampleData>
+    </sample2.x>
+</trackData>
