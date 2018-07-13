@@ -12,7 +12,7 @@ $load=simplexml_load_file($sessionId.'/track.xml');
 if($load !== FALSE){
     $dom_abs = dom_import_simplexml($load);
     $abs = new DOMDocument('1.0');
-    $dom_abs = $abs->importNode($dom_abs, true); //create dom element to contain mpd 
+    $dom_abs = $abs->importNode($dom_abs, true);
         
     $dom_abs = $abs->appendChild($dom_abs);
     
@@ -39,15 +39,17 @@ $fileHandle=fopen($sessionId."/init.html","w");
 fwrite($fileHandle,substr($fullFile,$startPos,$endPos-$startPos+1+6));//To include till end of </html>
 fclose($fileHandle);
 
-
+$sampleNum=3;//As child node index 3 has the first sample.x
 for($i=1;$i<=(int)$sampleCount;$i++)
 {
-    $sample=$trackData->getElementsByTagName('sample'.$i.'.x')->item(0);
+    $sample=$trackData->childNodes[$sampleNum];
     $decodeDur=$sample->getAttribute('decodeDur');
     $script=$sample->getElementsByTagName('script')->item(0);
     $fileHandle=fopen($sessionId.'/sample'.$i.'.x',"w");
     fwrite($fileHandle,$decodeDur."\n");
     fwrite($fileHandle,$script->nodeValue);
+    fclose($fileHandle);
+    $sampleNum+=2;
     sleep($decodeDur);
 
 }

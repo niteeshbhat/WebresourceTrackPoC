@@ -47,7 +47,6 @@
                 function timer()
                 {
                     time+=100;
-                    console.log((new Date()).getTime())
                     ScanEvents(time);
                     
                 }
