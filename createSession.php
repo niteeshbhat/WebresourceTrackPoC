@@ -7,11 +7,11 @@
  */
 $sessionId=$_POST['sessionId'];
 
-mkdir("temp/".$sessionId);
+mkdir($sessionId);
 //chmod("temp/".$sessionId."/", 0777);
-exec("sudo chmod -R 0777 temp/".$sessionId."/");
+exec("sudo chmod -R 0777 ".$sessionId."/");
 
-copy("track.xml","temp/".$sessionId."/track.xml"); 
+copy("track.xml",$sessionId."/track.xml"); 
 
 
 echo "Session created "."$sessionId";
