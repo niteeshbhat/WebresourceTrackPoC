@@ -42,7 +42,7 @@ fclose($fileHandle);
 $sampleNum=3;//As child node index 3 has the first sample.x
 for($i=1;$i<=(int)$sampleCount;$i++)
 {
-    $sample=$trackData->childNodes[$sampleNum];
+    $sample=$trackData->childNodes->item($sampleNum);
     $decodeDur=$sample->getAttribute('decodeDur');
     $startTime=$sample->getAttribute('startTime');
     $script=$sample->getElementsByTagName('script')->item(0);
