@@ -1,0 +1,92 @@
+<trackData>
+    <init>
+        <template>sample$Number$.x</template>
+        <sampleCount>2</sampleCount>
+        <initialWebpage>
+           <html>
+              <head>
+              </head>
+              <body>
+                <textarea id="textArea">
+                    Initial webpage loaded
+                </textarea>
+              </body>
+              <script>
+                var browserSampleNum=1,sampleCount=2;
+                var list=new Array(),time=0,timeoutHandle;
+                //Load media samples into the browser.
+                setTimeout(function(){loadAndBuildSampleList();},0);  
+                timeoutHandle= setInterval(function(){timer();},100);
+    
+                function loadAndBuildSampleList()
+                {  
+                    if(browserSampleNum &lt;= sampleCount)
+                    {
+                        var request = new XMLHttpRequest();
+                        request.open('GET', 'sample'+browserSampleNum+'.x', true);
+                        request.send();
+                        request.onreadystatechange = function() {
+                            if (this.readyState == 4 &amp;&amp; this.status == 200) {
+                                var scriptContentsWithTime = this.responseText;
+                                var scriptContents;
+                                var components = scriptContentsWithTime.split('\n');
+                                var decodeDur=components.shift();
+                                var startTime = components.shift();
+                                console.log(startTime)
+                                scriptContents = components.join('\n');    
+
+                                list.push({starttime:startTime,event:scriptContents, status:'notStarted'});
+                                browserSampleNum+=1;
+                                setTimeout(function(){loadAndBuildSampleList();},decodeDur*1000); 
+                            }
+                        };
+                            
+                    }
+                }   
+                
+                function timer()
+                {
+                    time+=100;
+                    console.log((new Date()).getTime())
+                    ScanEvents(time);
+                    
+                }
+                function ScanEvents(timeCopy)
+                {
+                    var i;
+                    for(i=0; i &lt; list.length;i++) {
+                        if((list[i].starttime)*1000 &lt;= timeCopy &amp;&amp; list[i].status=='notStarted')
+                        {
+                            TriggerEvent(list[i].event);
+                            list[i].status='started';
+                            if(i== sampleCount-1)
+                                clearInterval(timeoutHandle);
+                                
+                        }
+                    }
+                }
+                function TriggerEvent(content)
+                {
+                     var theScript = document.createElement('script');
+                     theScript.innerHTML = content;
+                     document.body.appendChild(theScript);
+                }
+              </script>
+            </html>
+        </initialWebpage>
+    </init>
+    <sample1.x decodeDur="5" startTime="3" sampleType="0">
+        <sampleData>
+            <script>
+                document.getElementById("textArea").innerHTML="sample1 loaded";
+            </script>
+        </sampleData>
+    </sample1.x>
+    <sample2.x decodeDur="5" startTime="8" sampleType="0">
+        <sampleData>
+            <script>
+                document.getElementById("textArea").innerHTML="sample2 loaded";
+            </script>
+        </sampleData>
+    </sample2.x>
+</trackData>

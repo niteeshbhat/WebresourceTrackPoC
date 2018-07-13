@@ -44,9 +44,11 @@ for($i=1;$i<=(int)$sampleCount;$i++)
 {
     $sample=$trackData->getElementsByTagName('sample'.$i.'.x')->item(0);
     $decodeDur=$sample->getAttribute('decodeDur');
+    $startTime=$sample->getAttribute('startTime');
     $script=$sample->getElementsByTagName('script')->item(0);
     $fileHandle=fopen($sessionId.'/sample'.$i.'.x',"w");
     fwrite($fileHandle,$decodeDur."\n");
+    fwrite($fileHandle,$startTime."\n");
     fwrite($fileHandle,$script->nodeValue);
     sleep($decodeDur);
 
