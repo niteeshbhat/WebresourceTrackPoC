@@ -12,51 +12,59 @@
                 </textarea>
               </body>
               <script>
-                var browserSampleNum=1,sampleCount=2;
+                var sampleNumber=1,sampleCount=2;
                 //Load media samples into the browser.
-                setTimeout(function(){loadSamples();},1000);     
+                setTimeout(function(){loadSamples();},0);     
     
                 function loadSamples()
-                {   var resultArray;
-                    if(browserSampleNum &lt;= sampleCount)
+                {
+                    getViaXHR('sample'+sampleNumber+'.x', onSampleXHRSuccess);
+                    
+                    function onSampleXHRSuccess(responseText)
                     {
-                        var request = new XMLHttpRequest();
-                        request.open('GET', 'sample'+browserSampleNum+'.x', true);
-                        request.send();
-                        request.onreadystatechange = function() {
-                            if (this.readyState == 4 &amp;&amp; this.status == 200) {
-                                var scriptContentsWithTime = this.responseText;
-                                var scriptContents;
-                                var components = scriptContentsWithTime.split('\n');
-                                var time = components.shift();
-                                console.log(time)
-                                scriptContents = components.join('\n');    
-                                var theScript = document.createElement('script');
-                                theScript.innerHTML = scriptContents;
-                                document.body.appendChild(theScript);
-                                browserSampleNum+=1;
-                                setTimeout(function(){loadSamples();},time*1000); //Next sample loading after decode duration. 
-                            }
-                        };
-                            
+                        /*Create a node to note duration and extract inner HTML*/
+                        var div = document.createElement('div');
+                        div.innerHTML = responseText.trim();
+                        var decodeDelta = div.firstChild.getAttribute('decodeDur');
+
+                        /*Must create a "script element" that works when appending to DOM*/
+                        var theScript = document.createElement('script');
+                        theScript.innerHTML = div.firstChild.innerHTML;
+                                                
+                        /*append it to DOM*/
+                        document.body.appendChild(theScript);
+                        
+                        /*Check if we have a next sample to process, if so, load it after decode delta*/
+                        sampleNumber+=1;
+                        if(sampleNumber &lt;= sampleCount)
+                            setTimeout(function(){loadSamples();},decodeDelta*1000); //Next sample loading after decode duration. 
                     }
-                }    
+                } 
+                
+                /*Helper methods*/
+                function getViaXHR(URL, onSuccessEvent)
+                {
+                    var request = new XMLHttpRequest();
+                    request.open('GET', URL, true);
+                    request.send();
+                    request.onreadystatechange = function() {
+                        if (this.readyState == 4 &amp;&amp; this.status == 200) {
+                            onSuccessEvent(this.responseText);
+                        }
+                    }
+                }                
               </script>
             </html>
         </initialWebpage>
     </init>
-    <sample1.x decodeDur="5" sampleType="0">
-        <sampleData>
-            <script>
-                document.getElementById("textArea").innerHTML="sample1 loaded";
-            </script>
-        </sampleData>
-    </sample1.x>
-    <sample2.x decodeDur="5" sampleType="0">
-        <sampleData>
-            <script>
+    <sample>
+        <script decodeDur="5" sampleType="0">
+            document.getElementById("textArea").innerHTML="sample1 loaded";
+        </script>
+    </sample>
+    <sample>
+        <script decodeDur="5" sampleType="0">
                 document.getElementById("textArea").innerHTML="sample2 loaded";
             </script>
-        </sampleData>
-    </sample2.x>
+    </sample>
 </trackData> 

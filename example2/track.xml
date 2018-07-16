@@ -12,80 +12,89 @@
                 </textarea>
               </body>
               <script>
-                var browserSampleNum=1,sampleCount=2;
-                var list=new Array(),time=0,timeoutHandle;
+                var timerResolution = 100;  //in milliseconds
+                var sampleNumber=1,sampleCount=2;
+                var eventList=new Array();
+                var time=0;
                 //Load media samples into the browser.
                 setTimeout(function(){loadAndBuildSampleList();},0);  
-                timeoutHandle= setInterval(function(){timer();},100);
+                var timeoutHandle= setInterval(function(){timer();},timerResolution);
     
                 function loadAndBuildSampleList()
-                {  
-                    if(browserSampleNum &lt;= sampleCount)
+                {
+                    getViaXHR('sample'+sampleNumber+'.x', onSampleXHRSuccess);
+                    
+                    function onSampleXHRSuccess(responseText)
                     {
-                        var request = new XMLHttpRequest();
-                        request.open('GET', 'sample'+browserSampleNum+'.x', true);
-                        request.send();
-                        request.onreadystatechange = function() {
-                            if (this.readyState == 4 &amp;&amp; this.status == 200) {
-                                var scriptContentsWithTime = this.responseText;
-                                var scriptContents;
-                                var components = scriptContentsWithTime.split('\n');
-                                var decodeDur=components.shift();
-                                var startTime = components.shift();
-                                console.log(startTime)
-                                scriptContents = components.join('\n');    
-
-                                list.push({starttime:startTime,event:scriptContents, status:'notStarted'});
-                                browserSampleNum+=1;
-                                setTimeout(function(){loadAndBuildSampleList();},decodeDur*1000); 
-                            }
-                        };
-                            
+                        /*Create a node to note duration, event start time and extract inner HTML to generate the script when event triggered*/
+                        var div = document.createElement('div');
+                        div.innerHTML = responseText.trim();
+                        var decodeDelta = div.firstChild.getAttribute('decodeDur');
+                        var startTime = div.firstChild.getAttribute('startTime');
+                        console.log(startTime)                                          
+                        
+                        /*Push this event in list*/
+                        eventList.push({starttime:startTime,event:div.firstChild.innerHTML, status:'notStarted'});
+                        /*Check if we have a next sample to process, if so, load it after decode delta*/
+                        sampleNumber+=1;
+                        if(sampleNumber &lt;= sampleCount)
+                            setTimeout(function(){loadAndBuildSampleList();},decodeDelta*1000);    
                     }
                 }   
                 
+                /*Timer callback*/
                 function timer()
                 {
-                    time+=100;
-                    ScanEvents(time);
-                    
+                    time+=timerResolution;
+                    ScanAndTriggerEvents(time);
                 }
-                function ScanEvents(timeCopy)
+                    
+                function ScanAndTriggerEvents(time)
                 {
-                    var i;
-                    for(i=0; i &lt; list.length;i++) {
-                        if((list[i].starttime)*1000 &lt;= timeCopy &amp;&amp; list[i].status=='notStarted')
+                    /*Scan the event list*/
+                    for(i=0; i &lt; eventList.length;i++) {
+                        if((eventList[i].starttime)*1000 &lt;= time &amp;&amp; eventList[i].status=='notStarted')
                         {
-                            TriggerEvent(list[i].event);
-                            list[i].status='started';
+                            TriggerEvent(eventList[i].event);
+                            eventList[i].status='started';
+                            /*When all events done, stop timer*/
                             if(i== sampleCount-1)
-                                clearInterval(timeoutHandle);
-                                
+                                clearInterval(timeoutHandle);                             
                         }
                     }
                 }
+                
                 function TriggerEvent(content)
                 {
                      var theScript = document.createElement('script');
                      theScript.innerHTML = content;
                      document.body.appendChild(theScript);
                 }
+                
+                /*Helper methods*/
+                function getViaXHR(URL, onSuccessEvent)
+                {
+                    var request = new XMLHttpRequest();
+                    request.open('GET', URL, true);
+                    request.send();
+                    request.onreadystatechange = function() {
+                        if (this.readyState == 4 &amp;&amp; this.status == 200) {
+                            onSuccessEvent(this.responseText);
+                        }
+                    }
+                } 
               </script>
             </html>
         </initialWebpage>
     </init>
-    <sample1.x decodeDur="5" startTime="3" sampleType="0">
-        <sampleData>
-            <script>
-                document.getElementById("textArea").innerHTML="sample1 loaded";
-            </script>
-        </sampleData>
-    </sample1.x>
-    <sample2.x decodeDur="5" startTime="8" sampleType="0">
-        <sampleData>
-            <script>
-                document.getElementById("textArea").innerHTML="sample2 loaded";
-            </script>
-        </sampleData>
-    </sample2.x>
+    <sample>
+        <script decodeDur="10" startTime="6" sampleType="0">
+            document.getElementById("textArea").innerHTML="sample1 loaded";
+        </script>
+    </sample>
+    <sample>
+        <script decodeDur="10" startTime="10" sampleType="0">
+            document.getElementById("textArea").innerHTML="sample2 loaded";
+        </script>
+    </sample>
 </trackData>

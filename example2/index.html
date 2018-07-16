@@ -3,8 +3,7 @@
     <title></title>
     <meta content="">
     <style></style>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>  
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     
   </head>
@@ -12,6 +11,7 @@
   <button type="button" onclick="start()">Start</button>
 
    <script>
+        /*On window load, create a session directory*/
         var sessionId;
         window.onload=function(){
             sessionId="id"+Math.floor((Math.random() * 10000000000) + 1);
@@ -23,6 +23,7 @@
             });
         }
         
+        /*Start the track decoding process*/
         function start()
         {
             $.post(
@@ -31,11 +32,10 @@
                     ).done(function(response){
                         console.log(response);
                  });
-            window.open(sessionId+"/init.html");
+                /*When decoder started, load the page in browser. Delay by 100 msec to make sure init and samples are actually written before the webpage tries to load them*/
+                setTimeout(function(){window.open(sessionId+"/init.html");},100);  
         }
-        
-        
-        
+ 
    </script>
   </body> 
 </html>
