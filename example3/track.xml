@@ -1,0 +1,103 @@
+<trackData>
+    <init>
+        <template>sample$Number$.x</template>
+        <sampleCount>2</sampleCount>
+        <initialWebpage>
+           <html>
+              <head>
+              </head>
+              <body>
+                <textarea id="textArea">
+                    Initial webpage loaded
+                </textarea>
+              </body>
+              <script>
+                var timerResolution = 100;  //in milliseconds
+                var sampleNumber=1,sampleCount=2;
+                var WebSockURL='ws://localhost:8080'; //Web socket server is running in this address.
+                var eventList=new Array();
+                var time=0;
+                //Load media samples into the browser.
+                setTimeout(function(){loadAndBuildSampleList();},0);  
+                var timeoutHandle= setInterval(function(){timer();},timerResolution);
+    
+                function loadAndBuildSampleList()
+                {
+                    getViaWebSocket(WebSockURL, onWSSuccess);
+                    
+                    function onWSSuccess(responseText)
+                    {
+                        /*Create a node to note duration, event start time and extract inner HTML to generate the script when event triggered*/
+                        var div = document.createElement('div');
+                        div.innerHTML = responseText.trim();
+                        var decodeDelta = div.firstChild.getAttribute('decodeDur');
+                        var startTime = div.firstChild.getAttribute('startTime');
+                        console.log(startTime)                                          
+                        
+                        /*Push this event in list*/
+                        eventList.push({starttime:startTime,event:div.firstChild.innerHTML, status:'notStarted'});
+                        /*Check if we have a next sample to process, if so, load it after decode delta*/
+                        sampleNumber+=1;
+                        if(sampleNumber &lt;= sampleCount)
+                            setTimeout(function(){loadAndBuildSampleList();},decodeDelta*1000+500);    
+                    }
+                }   
+                
+                /*Timer callback*/
+                function timer()
+                {
+                    time+=timerResolution;
+                    ScanAndTriggerEvents(time);
+                }
+                    
+                function ScanAndTriggerEvents(time)
+                {
+                    /*Scan the event list*/
+                    for(i=0; i &lt; eventList.length;i++) {
+                        if((eventList[i].starttime)*1000 &lt;= time &amp;&amp; eventList[i].status=='notStarted')
+                        {
+                            TriggerEvent(eventList[i].event);
+                            eventList[i].status='started';
+                            /*When all events done, stop timer*/
+                            if(i== sampleCount-1)
+                                clearInterval(timeoutHandle);                             
+                        }
+                    }
+                }
+                
+                function TriggerEvent(content)
+                {
+                     var theScript = document.createElement('script');
+                     theScript.innerHTML = content;
+                     document.body.appendChild(theScript);
+                }
+                
+                /*Helper methods*/
+                 function getViaWebSocket(WebSockURL, onSuccessEvent)
+                {
+                    const ws = new WebSocket(WebSockURL); 
+                    
+                    ws.onopen = function() {
+                        // Web Socket is connected, receive sample data
+                        ws.onmessage = function (message) { 
+                            console.log("Message is received..."+message.data);
+                            onSuccessEvent(message.data);
+                        };
+                       
+                    };
+                } 
+              </script>
+            </html>
+        </initialWebpage>
+    </init>
+    <sample>
+        <script decodeDur="10" startTime="6" sampleType="0">
+            document.getElementById("textArea").innerHTML="sample1 loaded";
+        </script>
+    </sample>
+    <sample>
+        <script decodeDur="10" startTime="10" sampleType="0">
+            document.getElementById("textArea").innerHTML="sample2 loaded";
+        </script>
+    </sample>
+</trackData>

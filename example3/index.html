@@ -1,0 +1,148 @@
+<html>
+  <head>
+    <title></title>
+    <meta content="">
+    <style></style>
+  </head>
+  <body>
+  <button type="button" id="Start Decoding" onclick="start()">Decode</button>
+
+  <script>
+/***********************************************Application****************************************************/  
+    var fileName="track.xml"; // Track file contains initialization and media sample data.
+    var trackURL;
+    var sampleNum=1;
+    var WebSocketURL="ws://localhost:8080";
+    //XMLHttpRequest is used to load the track file into the Application and the contents of track file
+    //are saved as a Blob resource.
+    var trackURL= getTrackAndCreateBlob(fileName);
+
+    //When the 'Start Decoding' button is clicked, application gets here to and calls decoder.
+    function start()
+    {
+        new decoder(trackURL);
+    }
+    //This callback happens as and when decoder gives an output- init or media segments.
+    function decodeEventCallback(eventType,eventPayload)
+    {
+        if(eventType==0)//eventType is 0 for init segment and 1 for media segments.
+        {
+            //var initBlobURL=createBlob(eventPayload);
+            winHandle = window.open(); // Open new window to load initial webpage
+            winHandle.document.open();
+            winHandle.document.write(eventPayload);
+        }
+        else
+        {
+            sendSampleViaWebSocket(WebSocketURL,eventPayload);
+        }
+    }
+/**********************************************************************************************************/
+
+/******************************************Decoder*********************************************************/
+class decoder{
+    constructor(trackURL)
+    {
+            var self=this;
+            //Create a XHR to obtain track data from the blob location.
+            var request=blobRequest(trackURL);
+            request.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+               //FileReader to be used to read received blob.
+                var reader = new FileReader();
+                reader.readAsText(request.response);
+                reader.onload = function() {
+                    //The track data recieved is in xml and a xml parser is used.
+                    var parser = new DOMParser();
+                    var trackDataXml = parser.parseFromString(reader.result,"text/xml");
+                    //Get the required element from the loaded xml.        
+                    var initElem=trackDataXml.getElementsByTagName("init")[0];
+                    var sampleCount=initElem.getElementsByTagName("sampleCount")[0].childNodes[0].nodeValue;
+                    self.extractInit(initElem,sampleCount); // Function to extract init data and update to the Application.
+                    var trackData=trackDataXml.getElementsByTagName("trackData")[0];
+                    //Function to extract media sample data and update to the Application.
+                    self.extractSample(trackData,sampleCount);
+
+                }   
+             }
+            };
+    }
+    //Function to extract init data from track file data.
+    extractInit(initElem,sampleCount)
+    {
+        var initData=initElem.getElementsByTagName("html")[0].outerHTML;
+        var payload=replaceSpecialStrings(initData);//Replace the &lt; etc. in file
+        decodeEventCallback(0,payload);
+    }
+    //Function to extract media sample data.
+     extractSample(trackData,sampleCount)
+    {   
+        var self=this;
+        if(sampleNum<=sampleCount)//Continue if the sample is present.
+        {
+            var sample=trackData.childNodes[(sampleNum*2)+1];//Indexing and addressing of child node caters for extra "text" nodes.
+            var script=sample.firstChild.nextSibling;
+            var decodeDur=script.getAttribute("decodeDur");
+            sampleNum+=1;
+            var payload=replaceSpecialStrings(script.outerHTML);//Replace the &lt; etc. in file
+            //Next segment extraction depending on the decode duration mentioned in the current sample.
+            setTimeout(function(){self.extractSample(trackData,sampleCount);},decodeDur*1000)
+            decodeEventCallback(1,payload);
+        
+        }
+    }
+}
+/******************************************Decoder*********************************************************/   
+
+
+/******************************************Helper Functions************************************************/ 
+function getTrackAndCreateBlob(fileName)
+{
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var blobObj = new Blob([xhr.responseText], {type : "text/javascript"});
+            trackURL = URL.createObjectURL(blobObj);
+            return trackURL;
+        }
+    };
+    xhr.open("GET", fileName, true);
+    xhr.send();
+}
+
+function createBlob(Payload)
+{
+        var blobObj = new Blob([Payload], {type : "text/plain"});
+        blobURL = URL.createObjectURL(blobObj);
+        return blobURL;
+}
+
+function blobRequest(blobURL)
+{
+    var request = new XMLHttpRequest();
+    request.open('GET', blobURL, true);
+    request.responseType = 'blob';
+    request.send();
+    return request;
+}
+function replaceSpecialStrings(stringVar)
+{
+    stringVar=stringVar.replace(/&lt;/g, '<');
+    stringVar=stringVar.replace(/&gt;/g, '>');
+    stringVar=stringVar.replace(/&amp;/g, '&');
+    return stringVar;
+}
+function sendSampleViaWebSocket(WSURL, payload)
+{
+    const ws = new WebSocket(WSURL);
+
+    ws.onopen = function() {
+        // Web Socket is connected, send data using send()
+        ws.send(payload);
+        console.log("Message is sent..."+payload);
+    };
+}
+        
+  </script>
+  </body>
+</html>
