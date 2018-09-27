@@ -1,0 +1,51 @@
+<trackData>
+    <init>
+        <template>sample$Number$.x</template>
+        <sampleCount>2</sampleCount>
+        <initialWebpage>
+           <html>
+              <head>
+              </head>
+              <body>
+                <textarea id="textArea">
+                    Initial webpage loaded
+                </textarea>
+              </body>
+              <script>
+                var browserSampleNum=1,sampleCount=2;
+                //Load media samples into the browser.
+		//setTimeout(function(){loadSamples();},1000); 
+		window.addEventListener("message", loadSamples);
+		function loadSamples(e)
+                {   var resultArray;
+		    
+                    if(browserSampleNum &lt;= sampleCount)
+                    {
+			var payload = e.data;
+                        var theScript = document.createElement('script');
+			theScript.innerHTML= payload[3];
+		        var time= payload[2];
+                        document.body.appendChild(theScript);
+                        browserSampleNum+=1;
+                        setTimeout(function(){loadSamples();},time*1000); //Next sample loading after decode duration. 
+                    }
+                };
+              </script>
+            </html>
+        </initialWebpage>
+    </init>
+    <sample1.x decodeDur="5" sampleType="0">
+        <sampleData>
+            <script>
+                document.getElementById("textArea").innerHTML="sample1 loaded";
+            </script>
+        </sampleData>
+    </sample1.x>
+    <sample2.x decodeDur="5" sampleType="0">
+        <sampleData>
+            <script>
+                document.getElementById("textArea").innerHTML="sample2 loaded";
+            </script>
+        </sampleData>
+    </sample2.x>
+</trackData>
