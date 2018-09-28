@@ -14,6 +14,7 @@
               <script>
 		// listens to the messages sent from the Application 
 		window.addEventListener("message", loadSamples);
+		
 		//function to load received samples in to the browser
 		function loadSamples(eventResponse)
                 {   
