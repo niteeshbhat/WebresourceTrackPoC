@@ -6,4 +6,5 @@ The application loads the init page from blob in a new window.
 
 Decoder extracts other samples according to the decode duration and sends them to the new window using postmessage.
 
-The init page has a script which listens to the message which is being sent using postmessage.
+The init page has a script which listens to the message which is being sent using postmessage and displays the message 
+depending on the decode delta times.
