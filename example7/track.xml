@@ -1,0 +1,85 @@
+<trackData>
+    <init>
+        <template>sample$Number$.x</template>
+        <sampleCount>2</sampleCount>
+        <initialWebpage>
+           <html>
+              <head>
+              </head>
+              <body>
+                <textarea id="textArea">
+                    Initial webpage loaded
+                </textarea>
+              </body>
+              <script>
+		var timerResolution = 100;  //in milliseconds
+		var eventList=new Array();
+		var sampleNumber=1,sampleCount=2;
+		var time=0;
+		var timeoutHandle= setInterval(timer,timerResolution);
+		
+		// listens to the messages sent from the Application 
+		window.addEventListener("message", loadSamples);
+		
+		//function to load received samples in to the browser
+		function loadSamples(eventResponse)
+                {   
+		    var payload = eventResponse.data;
+		    var sampleData = payload[0];
+		    var startTime = payload[1];
+		    //create a "script element" for appending to DOM
+                    var theScript = document.createElement('script');
+		    theScript.innerHTML= sampleData;
+		    
+		    /*Push this event in list*/
+                    eventList.push({starttime:startTime,event:theScript.innerHTML, status:'notStarted'}); 
+		
+		}  
+		function timer()
+                {
+                    time+=timerResolution;
+                    ScanAndTriggerEvents(time);
+                }
+                    
+                function ScanAndTriggerEvents(time)
+                {
+                    /*Scan the event list*/
+                    for(i=0; i &lt; eventList.length;i++) 
+		    {
+                        if((eventList[i].starttime)*1000 &lt;= time &amp;&amp; eventList[i].status=='notStarted')
+                        {
+                            TriggerEvent(eventList[i].event);
+                            eventList[i].status='started';
+                            /*When all events done, stop timer*/
+                            if(i== sampleCount-1)
+                                clearInterval(timeoutHandle);                             
+                        }
+                    }
+                }
+                
+                function TriggerEvent(content)
+                {
+                     var theScript = document.createElement('script');
+                     theScript.innerHTML = content;
+                     document.body.appendChild(theScript);
+                }
+                
+              </script>
+            </html>
+        </initialWebpage>
+    </init>
+    <sample1.x decodeDur="10" startTime="6" sampleType="0">
+        <sampleData>
+            <script>
+                document.getElementById("textArea").innerHTML="sample1 loaded";
+            </script>
+        </sampleData>
+    </sample1.x>
+    <sample2.x decodeDur="10" startTime="12" sampleType="0">
+        <sampleData>
+            <script>
+                document.getElementById("textArea").innerHTML="sample2 loaded";
+            </script>
+        </sampleData>
+    </sample2.x>
+</trackData>
