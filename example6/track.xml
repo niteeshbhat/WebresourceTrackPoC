@@ -12,19 +12,59 @@
                 </textarea>
               </body>
               <script>
+                var timerResolution = 100;  //in milliseconds
+		var eventList=new Array();
+		var sampleNumber=1,sampleCount=2;
+		var time=0, decodeDelta=0;
+		var timeoutHandle= setInterval(timer,timerResolution);
+		
 		// listens to the messages sent from the Application 
 		window.addEventListener("message", loadSamples);
 		
 		//function to load received samples in to the browser
 		function loadSamples(eventResponse)
                 {   
-		    var payload = eventResponse.data; 
+		    var payload = eventResponse.data;
+		    var sampleData = payload[0];
+		  
 		    //create a "script element" for appending to DOM
                     var theScript = document.createElement('script');
-		    theScript.innerHTML= payload;
-		    //append it to DOM
-                    document.body.appendChild(theScript);
-                };
+		    theScript.innerHTML= sampleData;
+		    
+		    /*Push this event in list*/
+                    eventList.push({starttime:decodeDelta,event:theScript.innerHTML, status:'notStarted'}); 
+                    
+                    //startTime for the next event is the decodeDelta mentioned in the current event.
+                    decodeDelta = payload[1];
+		}  
+		function timer()
+                {
+                    time+=timerResolution;
+                    ScanAndTriggerEvents(time);
+                }
+                    
+                function ScanAndTriggerEvents(time)
+                {
+                    /*Scan the event list*/
+                    for(i=0; i &lt; eventList.length;i++) 
+		    {
+                        if((eventList[i].starttime)*1000 &lt;= time &amp;&amp; eventList[i].status=='notStarted')
+                        {
+                            TriggerEvent(eventList[i].event);
+                            eventList[i].status='started';
+                            /*When all events done, stop timer*/
+                            if(i== sampleCount-1)
+                                clearInterval(timeoutHandle);                             
+                        }
+                    }
+                }
+                
+                function TriggerEvent(content)
+                {
+                     var theScript = document.createElement('script');
+                     theScript.innerHTML = content;
+                     document.body.appendChild(theScript);
+                }
               </script>
             </html>
         </initialWebpage>

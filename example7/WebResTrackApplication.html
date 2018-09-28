@@ -31,8 +31,6 @@
     
     function decoder(trackDataXml)
     {    
-	var timerResolution = 100;  //in milliseconds
-	
 	//extract information from the track xml Data
 	var initElem=trackDataXml.getElementsByTagName("init")[0];
 	var sampleCount=initElem.getElementsByTagName("sampleCount")[0].childNodes[0].nodeValue;
@@ -100,7 +98,6 @@
 
     function replaceSpecialchar(inString)
     {
-	//var outstring=inString.replace(/&lt;/g,"<");
 	var outstring=inString.split("&lt;").join("<");
 	outstring=outstring.split("&amp;").join("&");
 	return outstring;
