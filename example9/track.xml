@@ -1,0 +1,93 @@
+<trackData>
+    <init>
+        <template>sample$Number$.x</template>
+        <sampleCount>2</sampleCount>
+        <initialWebpage>
+           <html>
+              <head>
+              </head>
+              <body>
+                <textarea id="textArea">
+                    Initial webpage loaded
+                </textarea>
+              </body>
+              <script>
+		var timerResolution = 100;  //in milliseconds
+		var eventList=new Array();
+		var time=0;
+		var browserSampleNum=1,sampleCount=2;
+		var timeoutHandle= setInterval(timer,timerResolution);
+		
+		setTimeout(function(){loadSamples();},0);
+		
+		//function to load received samples in to the browser
+		function loadSamples()
+                {   
+			//create a "script element" for appending to DOM
+			var theScript = document.createElement('script');
+			theScript.innerHTML=localStorage.getItem('sample'+browserSampleNum+'.x_data');
+			var decodeDur= localStorage.getItem('sample'+browserSampleNum+'.x_decodeDur');
+			var startTime = localStorage.getItem('sample'+browserSampleNum+'.x_startTime');
+			browserSampleNum+=1;
+			
+			/*Push this event in list*/
+			eventList.push({starttime:startTime,event:theScript.innerHTML, status:'notStarted'});
+			
+			if(browserSampleNum &lt;= sampleCount)
+			{
+			    //Next sample loading after decode duration.
+			    setTimeout(function(){loadSamples();},decodeDur*1000); 
+			
+			}
+			 
+			
+		}  
+		
+		function timer()
+                {
+                    time+=timerResolution;
+                    ScanAndTriggerEvents(time);
+                }
+                    
+                function ScanAndTriggerEvents(time)
+                {
+                    /*Scan the event list*/
+                    for(i=0; i &lt; eventList.length;i++) 
+		    {
+                        if((eventList[i].starttime)*1000 &lt;= time &amp;&amp; eventList[i].status=='notStarted')
+                        {
+                            TriggerEvent(eventList[i].event);
+                            eventList[i].status='started';
+                            /*When all events done, stop timer*/
+                            if(i== sampleCount-1)
+				clearInterval(timeoutHandle);                             
+                        }
+                    }
+                }
+                
+                function TriggerEvent(content)
+                {
+                     var theScript = document.createElement('script');
+                     theScript.innerHTML = content;
+                     document.body.appendChild(theScript);
+                }
+                
+              </script>
+            </html>
+        </initialWebpage>
+    </init>
+    <sample1.x decodeDur="10" startTime="6" sampleType="0">
+        <sampleData>
+            <script>
+                document.getElementById("textArea").innerHTML="sample1 loaded";
+            </script>
+        </sampleData>
+    </sample1.x>
+    <sample2.x decodeDur="10" startTime="12" sampleType="0">
+        <sampleData>
+            <script>
+                document.getElementById("textArea").innerHTML="sample2 loaded";
+            </script>
+        </sampleData>
+    </sample2.x>
+</trackData>
