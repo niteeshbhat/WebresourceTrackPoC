@@ -44,7 +44,6 @@
 	//Function to extract media sample data and push to the browser
 	//Timeout is used just to see init message display before 1st media display in browser.
 	setTimeout(function(){extractSampleAndPush(trackDataXml,template,sampleCount);},0);
-	    
     }
     //Function to extract init data from track file data and update to the Application
     function extractInitAndUpdateApp(initElem)
@@ -62,15 +61,15 @@
 	{
 	    var sampleName=template.replace("$Number$",sampleNum);
 	    var sampleElement=trackDataXml.getElementsByTagName(sampleName);
-	    var decodeDur=sampleElement[0].getAttribute("decodeDur");
+	    //var decodeDur=sampleElement[0].getAttribute("decodeDur");
 	    var sampleType=sampleElement[0].getAttribute("sampleType");
 	    var startTime=sampleElement[0].getAttribute("startTime");
 	    var sampleData=sampleElement[0].getElementsByTagName("script")[0].childNodes[0].nodeValue;
 	    payload = [sampleData,startTime];
-	    setTimeout(function(){winHandle.postMessage(payload, "*");},0)
+	    winHandle.postMessage(payload, "*");
 	    sampleNum+=1;
-	    //Next segment extraction depending on the decode duration mentioned in the current sample.
-	    setTimeout(function(){extractSampleAndPush(trackDataXml,template,sampleCount);},decodeDur*1000)
+	    //Next segment extraction.
+	    extractSampleAndPush(trackDataXml,template,sampleCount);
 
 	}
     }
