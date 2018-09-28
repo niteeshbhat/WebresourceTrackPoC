@@ -1,9 +1,9 @@
-The application loads the track.xml and stores in a blob which is passed to decoder.
-Decoder extracts init webpage and passes to the application.
+The application loads the track.xml.
 
-The application loads the init page to a new window (using blob).
+Decoder extracts init webpage, saves it in blob and passes the blob url to the application.
 
-Decoder extracts other samples according to the decode time and sends them to the new window using postmessage.
+The application loads the init page from blob in a new window.
 
+Decoder extracts other samples according to the decode duration and sends them to the new window using postmessage.
 
 The init page has a script which listens to the message which is being sent using postmessage.
