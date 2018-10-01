@@ -14,7 +14,6 @@
               <script>
 		var timerResolution = 100;  //in milliseconds
 		var eventList=new Array();
-		var sampleNumber=1,sampleCount=2;
 		var time=0;
 		var timeoutHandle= setInterval(timer,timerResolution);
 		
@@ -27,13 +26,10 @@
 		    var payload = eventResponse.data;
 		    var sampleData = payload[0];
 		    var startTime = payload[1];
-		    //create a "script element" for appending to DOM
-                    var theScript = document.createElement('script');
-		    theScript.innerHTML= sampleData;
-		    
+                    var lastSample = payload[2];
+ 
 		    /*Push this event in list*/
-                    eventList.push({starttime:startTime,event:theScript.innerHTML, status:'notStarted'}); 
-		
+                    eventList.push({starttime:startTime,event:sampleData, status:'notStarted', last:lastSample}); 
 		}  
 		function timer()
                 {
@@ -51,7 +47,7 @@
                             TriggerEvent(eventList[i].event);
                             eventList[i].status='started';
                             /*When all events done, stop timer*/
-                            if(i== sampleCount-1)
+                            if(eventList[i].last==1)
                                 clearInterval(timeoutHandle);                             
                         }
                     }
@@ -59,6 +55,7 @@
                 
                 function TriggerEvent(content)
                 {
+                     //create a "script element" for appending to DOM
                      var theScript = document.createElement('script');
                      theScript.innerHTML = content;
                      document.body.appendChild(theScript);
@@ -68,14 +65,14 @@
             </html>
         </initialWebpage>
     </init>
-    <sample1.x decodeDur="10" startTime="6" sampleType="0">
+    <sample1.x decodeDur="10" startTime="6" sampleType="0" lastSample="0">
         <sampleData>
             <script>
                 document.getElementById("textArea").innerHTML="sample1 loaded";
             </script>
         </sampleData>
     </sample1.x>
-    <sample2.x decodeDur="10" startTime="12" sampleType="0">
+    <sample2.x decodeDur="10" startTime="12" sampleType="0" lastSample="1">
         <sampleData>
             <script>
                 document.getElementById("textArea").innerHTML="sample2 loaded";
