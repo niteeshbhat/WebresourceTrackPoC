@@ -32,9 +32,16 @@
     {
         initbloburl = createBlob(initPage);
         initPageWindow.location.replace(initbloburl); // Open new window to load initial webpage using blob url 
-        if (initPageWindow.document.readyState === "complete") {
-            setTimeout(function(){decoder.extractSampleAndPush();},0);
+
+        initPageWindow.document.onreadystatechange = function () {
+            if (initPageWindow.document.readyState === "complete") {
+                setTimeout(function(){decoder.extractSampleAndPush();},0);
+            }
         }
+        //Used in the case of immediate completion of new window blob loading.
+        if(initPageWindow.document.readyState==="complete")
+            setTimeout(function(){decoder.extractSampleAndPush();},0);
+
     }
 
     /******************************************Track Decoder*********************************************************/
